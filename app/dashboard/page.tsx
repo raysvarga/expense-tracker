@@ -23,29 +23,48 @@ export default function Dashboard() {
     }
   }, []);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!nominal || !kategori) {
-      alert("Isi nominal & kategori");
-      return;
+        alert("Isi nominal & kategori");
+        return;
     }
 
+    const user = localStorage.getItem("user_name");
+
+    const payload = {
+        user_id: user,
+        nominal: Number(nominal),
+        kategori,
+        catatan,
+    };
+
+    try {
+        // 🔥 KIRIM KE GOOGLE SHEETS
+        await fetch("https://script.google.com/macros/s/AKfycbygSfaqjs2uHpSpeBVVMCRgt0lwrdTH-rY9wYg9Jiv-IM5RG-snTt8PcgE4f2fEIPoCjA/exec", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        });
+
+        console.log("Berhasil kirim ke Sheets");
+    } catch (err) {
+        console.error("Error kirim:", err);
+    }
+
+    // tetap simpan lokal
     const newItem = {
-      id: Date.now(),
-      nominal: Number(nominal),
-      kategori,
-      catatan,
+        id: Date.now(),
+        ...payload,
     };
 
     const newData = [...data, newItem];
     setData(newData);
-
     localStorage.setItem("expenses", JSON.stringify(newData));
 
     // reset input
     setNominal("");
     setKategori("");
     setCatatan("");
-  };
+    };
 
   const total = data.reduce((sum, item) => sum + item.nominal, 0);
 
