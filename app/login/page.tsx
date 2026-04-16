@@ -4,12 +4,29 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function toTitleCase(text: string) {
+    return text
+      .toLowerCase()
+      .split(" ")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
 
   const handleLogin = () => {
     if (!name) return alert("Isi nama dulu");
 
-    localStorage.setItem("user_name", name);
-    window.location.href = "/dashboard";
+    if (loading) return;
+
+    setLoading(true);
+
+    const formattedName = toTitleCase(name);
+
+    setTimeout(() => {
+      localStorage.setItem("user_name", formattedName);
+      window.location.href = "/dashboard";
+    }, 500);
   };
 
   return (
@@ -26,9 +43,10 @@ export default function LoginPage() {
 
         <input
           type="text"
-          placeholder="Nama Kamu"
+          placeholder="Nama Panggilan (pakai huruf kecil aja ya :v)"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
           className="w-full border border-gray-500 rounded-lg p-3 mb-4 
                      placeholder-gray-700 bg-white text-gray-900 font-medium
                      focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -36,9 +54,11 @@ export default function LoginPage() {
 
         <button
           onClick={handleLogin}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+          disabled={loading}
+          className={`w-full py-3 rounded-lg font-semibold transition text-white
+            ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
         >
-          Masuk
+          {loading ? "Masuk..." : "Masuk"}
         </button>
 
       </div>
