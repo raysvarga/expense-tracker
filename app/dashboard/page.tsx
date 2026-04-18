@@ -155,6 +155,58 @@ export default function Dashboard() {
 
     const balance = totalIncome - totalExpense;
 
+    const isOverspending = totalExpense > totalIncome;
+
+    const savingRate = totalIncome > 0 
+    ? Math.round((balance / totalIncome) * 100) 
+    : 0;
+
+    let insightMessage = "";
+
+    if (isOverspending) {
+        insightMessage = "Pengeluaran kamu lebih besar dari pemasukan";
+    } else if (savingRate > 30) {
+        insightMessage = "Bagus! Kamu rajin menabung";
+    } else if (savingRate > 10) {
+        insightMessage = "Lumayan, tapi masih bisa ditingkatkan";
+    } else {
+        insightMessage = "Coba kurangi pengeluaran ya";
+    }
+
+    const getInsightStyle = () => {
+        if (isOverspending) {
+            return {
+                bg: "bg-red-50",
+                text: "text-red-700",
+                border: "border-red-200",
+                icon: "⚠️",
+            };
+        } else if (savingRate > 30) {
+            return {
+                bg: "bg-green-50",
+                text: "text-green-700",
+                border: "border-green-200",
+                icon: "💰",
+            };
+        } else if (savingRate > 10) {
+            return {
+                bg: "bg-yellow-50",
+                text: "text-yellow-700",
+                border: "border-yellow-200",
+                icon: "👍",
+            };
+        } else {
+            return {
+                bg: "bg-gray-50",
+                text: "text-gray-700",
+                border: "border-gray-200",
+                icon: "🚨",
+            };
+        }
+    };
+
+    const style = getInsightStyle();
+
     const getCategoryStyle = (kategori: string) => {
         switch (kategori) {
             case "Makanan":
@@ -192,6 +244,8 @@ export default function Dashboard() {
             }, {})
     );
 
+    const topExpense = groupedExpense.sort((a: any, b: any) => b.value - a.value)[0];
+
     const incomeVsExpense = [
         { name: "Income", value: totalIncome },
         { name: "Expense", value: totalExpense },
@@ -215,28 +269,47 @@ export default function Dashboard() {
 
                     <h1 className="text-3xl font-bold">Rp {balance.toLocaleString()}</h1>
 
+                    {isOverspending && (
+                        <p className="text-red-200 text-xs mt-1">
+                            ⚠️ Pengeluaran lebih besar dari pemasukan
+                        </p>
+                    )}
+
                     <div className="flex justify-between mt-3 text-sm">
                         <span className="text-green-200">+ Rp {totalIncome.toLocaleString()}</span>
                         <span className="text-red-200">- Rp {totalExpense.toLocaleString()}</span>
                     </div>
+
+                    <p className="text-xs mt-2 opacity-90">
+                        Rate Tabungan: {savingRate}%
+                    </p>
                 </div>
 
-                {mode === "monthly" && (
-                    <select value={month} onChange={(e) => setMonth(e.target.value)} className="w-full border p-2 rounded-lg bg-white">
-                        <option value="01">Januari</option>
-                        <option value="02">Februari</option>
-                        <option value="03">Maret</option>
-                        <option value="04">April</option>
-                        <option value="05">Mei</option>
-                        <option value="06">Juni</option>
-                        <option value="07">Juli</option>
-                        <option value="08">Agustus</option>
-                        <option value="09">September</option>
-                        <option value="10">Oktober</option>
-                        <option value="11">November</option>
-                        <option value="12">Desember</option>
-                    </select>
-                )}
+                <div className="bg-white p-4 rounded-2xl shadow-sm border">
+                    <p className="text-sm text-gray-500 mb-1">Pengeluaran Terbesar</p>
+                    {topExpense ? (
+                        <p className="font-semibold text-lg">
+                            {topExpense.name} - Rp {topExpense.value.toLocaleString()}
+                        </p>
+                    ) : (
+                        <p className="text-gray-400 text-sm">Belum ada data</p>
+                    )}
+                </div>
+
+                <div className={`${style.bg} ${style.border} border p-4 rounded-2xl`}>
+                    <div className="flex items-start gap-3">
+                        <div className="text-xl">{style.icon}</div>
+
+                        <div>
+                            <p className={`font-semibold ${style.text}`}>
+                                Insight
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                                {insightMessage}
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
                 <div className="bg-white p-4 rounded-2xl shadow-sm border">
                     <select
@@ -302,6 +375,23 @@ export default function Dashboard() {
                         {loading ? "Menyimpan..." : "Tambah"}
                     </button>
                 </div>
+
+                {mode === "monthly" && (
+                    <select value={month} onChange={(e) => setMonth(e.target.value)} className="w-full border p-2 rounded-lg bg-white">
+                        <option value="01">Januari</option>
+                        <option value="02">Februari</option>
+                        <option value="03">Maret</option>
+                        <option value="04">April</option>
+                        <option value="05">Mei</option>
+                        <option value="06">Juni</option>
+                        <option value="07">Juli</option>
+                        <option value="08">Agustus</option>
+                        <option value="09">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                    </select>
+                )}
 
                 <div className="bg-white p-4 rounded-2xl shadow-sm border">
                     <div className="h-40">
