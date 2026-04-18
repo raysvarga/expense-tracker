@@ -1,224 +1,337 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 
 export default function Dashboard() {
-    const [name, setName] = useState("");
-    const [nominal, setNominal] = useState("");
-    const [kategori, setKategori] = useState("");
-    const [catatan, setCatatan] = useState("");
-    const [data, setData] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [nominal, setNominal] = useState("");
+  const [kategori, setKategori] = useState("");
+  const [catatan, setCatatan] = useState("");
+  const [type, setType] = useState("expense");
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [month, setMonth] = useState("");
+  const [mode, setMode] = useState("monthly");
 
-    function toTitleCase(text: string) {
-        return text
-            .toLowerCase()
-            .split(" ")
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ");
+  function toTitleCase(text: string) {
+    return text
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
+  useEffect(() => {
+    const user = localStorage.getItem("user_name");
+    if (!user) {
+      window.location.href = "/login";
+      return;
     }
 
-    useEffect(() => {
-        const user = localStorage.getItem("user_name");
-        if (!user) {
-            window.location.href = "/login";
-            return;
-        }
+    setName(user);
+    const now = new Date();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    setMonth(m);
+    fetchData(user);
+  }, []);
 
-        setName(user);
-        fetchData(user);
-    }, []);
-
-    const fetchData = async (user: string) => {
-        const res = await fetch(`https://script.google.com/macros/s/AKfycbzjVj0uhavMQEzLIc-pcXu9txaCKCsYLB7vZqmXvs_CjS-_pvPrGB09KbFcxe-QNffbwg/exec?user_id=${user}`);
-        const result = await res.json();
-
-        const formatted = result.map((item: any) => ({
-            id: Date.now() + Math.random(),
-            nominal: Number(item.nominal),
-            kategori: toTitleCase(item.kategori),
-            catatan: toTitleCase(item.catatan || ""),
-        }));
-
-        setData(formatted);
-    };
-
-    const handleAdd = async () => {
-        if (!nominal || !kategori) {
-            alert("Isi nominal & kategori");
-            return;
-        }
-
-        if (loading) return;
-
-        setLoading(true);
-
-        const user = localStorage.getItem("user_name");
-
-        const payload = {
-            user_id: user,
-            nominal: Number(nominal),
-            kategori: toTitleCase(kategori),
-            catatan: toTitleCase(catatan),
-        };
-
-        try {
-            await fetch("https://script.google.com/macros/s/AKfycbzjVj0uhavMQEzLIc-pcXu9txaCKCsYLB7vZqmXvs_CjS-_pvPrGB09KbFcxe-QNffbwg/exec", {
-                method: "POST",
-                body: JSON.stringify(payload),
-            });
-
-            await fetchData(user as string);
-
-            setNominal("");
-            setKategori("");
-            setCatatan("");
-
-            alert("Berhasil ditambahkan");
-        } catch (e) {
-            alert("Gagal menyimpan");
-        }
-
-        setLoading(false);
-    };
-
-    const total = data.reduce((sum, item) => sum + item.nominal, 0);
-
-    const getCategoryStyle = (kategori: string) => {
-        switch (kategori) {
-            case "Makanan":
-                return { bg: "bg-green-100", text: "text-green-700", color: "#22c55e", icon: "🍔" };
-            case "Transport":
-                return { bg: "bg-blue-100", text: "text-blue-700", color: "#3b82f6", icon: "🚗" };
-            case "Belanja":
-                return { bg: "bg-purple-100", text: "text-purple-700", color: "#a855f7", icon: "🛍️" };
-            case "Tagihan":
-                return { bg: "bg-red-100", text: "text-red-700", color: "#ef4444", icon: "💡" };
-            case "Hiburan":
-                return { bg: "bg-yellow-100", text: "text-yellow-700", color: "#eab308", icon: "🎮" };
-            default:
-                return { bg: "bg-gray-100", text: "text-gray-700", color: "#6b7280", icon: "📦" };
-        }
-    };
-
-    const grouped = Object.values(
-        data.reduce((acc: any, item) => {
-            if (!acc[item.kategori]) {
-                acc[item.kategori] = { name: item.kategori, value: 0 };
-            }
-            acc[item.kategori].value += item.nominal;
-            return acc;
-        }, {})
+  const fetchData = async (user: string) => {
+    const res = await fetch(
+      `https://script.google.com/macros/s/AKfycbwI0bBz4oOXEYLSY0tx-aUDA4N13VYgzzPnDW7jY0m27Q4EEjXRtIx3VvwOVmhTaBjghg/exec?user_id=${user}`
     );
+    const result = await res.json();
 
-    return (
-        <main className="min-h-screen bg-gray-200 p-4">
-            <div className="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6">
+    const formatted = result.map((item: any) => {
+      const d = new Date(item.tanggal);
+      return {
+        id: Date.now() + Math.random(),
+        nominal: Number(item.nominal),
+        kategori: toTitleCase(item.kategori),
+        catatan: toTitleCase(item.catatan || ""),
+        type: item.type || "expense",
+        month: String(d.getMonth() + 1).padStart(2, "0"),
+      };
+    });
 
-                <h1 className="text-2xl font-bold mb-2 text-gray-900">Dashboard</h1>
-                <p className="mb-4 text-gray-700">Halo, {name} 👋</p>
+    setData(formatted);
+  };
 
-                <div className="border-t border-gray-300 pt-4">
-                    <h2 className="font-semibold mb-2 text-gray-800">Tambah Pengeluaran</h2>
+  const handleAdd = async () => {
+    if (!nominal || !kategori) return alert("Isi nominal & kategori");
+    if (loading) return;
 
-                    <input
-                        type="number"
-                        placeholder="Rp 0"
-                        value={nominal}
-                        onChange={(e) => setNominal(e.target.value)}
-                        className="w-full border border-gray-500 rounded-lg p-2 mb-2 
-                       placeholder-gray-700 bg-white text-gray-900 font-medium
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+    setLoading(true);
 
-                    <select
-                        value={kategori}
-                        onChange={(e) => setKategori(e.target.value)}
-                        className="w-full border border-gray-500 rounded-lg p-2 mb-2 
-                       bg-white text-gray-900 font-medium
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Pilih Kategori</option>
-                        <option value="makanan">Makanan</option>
-                        <option value="transport">Transport</option>
-                        <option value="belanja">Belanja</option>
-                        <option value="tagihan">Tagihan</option>
-                        <option value="hiburan">Hiburan</option>
-                        <option value="lainnya">Lainnya</option>
-                    </select>
+    const user = localStorage.getItem("user_name");
 
-                    <input
-                        type="text"
-                        placeholder="Catatan"
-                        value={catatan}
-                        onChange={(e) => setCatatan(e.target.value)}
-                        className="w-full border border-gray-500 rounded-lg p-2 mb-3 
-                       placeholder-gray-700 bg-white text-gray-900 font-medium
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+    const payload = {
+      user_id: user,
+      nominal: Number(nominal),
+      kategori: toTitleCase(kategori),
+      catatan: toTitleCase(catatan),
+      type: type,
+    };
 
-                    <button
-                        onClick={handleAdd}
-                        disabled={loading}
-                        className={`w-full py-2 rounded-lg font-semibold transition text-white
-              ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
-                    >
-                        {loading ? "Menyimpan..." : "Tambah"}
-                    </button>
-                </div>
+    try {
+      await fetch(
+        "https://script.google.com/macros/s/AKfycbwI0bBz4oOXEYLSY0tx-aUDA4N13VYgzzPnDW7jY0m27Q4EEjXRtIx3VvwOVmhTaBjghg/exec",
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        }
+      );
 
-                <div className="border-t border-gray-300 mt-6 pt-4">
-                    <h2 className="font-semibold mb-2 text-gray-900">
-                        Total: Rp {total.toLocaleString()}
-                    </h2>
+      await fetchData(user as string);
 
-                    <div className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={grouped}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    outerRadius={80}
-                                >
-                                    {grouped.map((entry: any, index) => {
-                                        const style = getCategoryStyle(entry.name);
-                                        return <Cell key={index} fill={style.color} />;
-                                    })}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
+      setNominal("");
+      setKategori("");
+      setCatatan("");
+    } catch (e) {
+      alert("Gagal menyimpan");
+    }
 
-                    <h3 className="text-sm text-gray-600 mb-2 mt-4">List Pengeluaran</h3>
+    setLoading(false);
+  };
 
-                    <div className="space-y-2">
-                        {data.map((item) => {
-                            const style = getCategoryStyle(item.kategori);
+  const monthlyData = data.filter((item) => item.month === month);
+  const filtered = mode === "monthly" ? monthlyData : data;
 
-                            return (
-                                <div
-                                    key={item.id}
-                                    className={`flex justify-between p-3 rounded-lg border ${style.bg}`}
-                                >
-                                    <div>
-                                        <p className={`font-semibold ${style.text}`}>
-                                            {style.icon} {item.kategori}
-                                        </p>
-                                        <p className="text-xs text-gray-700">{item.catatan}</p>
-                                    </div>
-                                    <p className="font-bold text-gray-900">
-                                        Rp {item.nominal.toLocaleString()}
-                                    </p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
+  const totalIncome = filtered
+    .filter((item) => item.type === "income")
+    .reduce((sum, item) => sum + item.nominal, 0);
 
+  const totalExpense = filtered
+    .filter((item) => item.type === "expense")
+    .reduce((sum, item) => sum + item.nominal, 0);
+
+  const balance = totalIncome - totalExpense;
+
+  const getCategoryStyle = (kategori: string) => {
+    switch (kategori) {
+      case "Makanan":
+        return { color: "#22c55e", icon: "🍔" };
+      case "Transport":
+        return { color: "#3b82f6", icon: "🚗" };
+      case "Belanja":
+        return { color: "#a855f7", icon: "🛍️" };
+      case "Tagihan":
+        return { color: "#ef4444", icon: "💡" };
+      case "Hiburan":
+        return { color: "#eab308", icon: "🎮" };
+      case "Gaji":
+        return { color: "#10b981", icon: "💼" };
+      case "Budget":
+        return { color: "#0e1421", icon: "💰" };
+      case "Bonus":
+        return { color: "#06b6d4", icon: "🎁" };
+      case "Freelance":
+        return { color: "#6366f1", icon: "🧑‍💻" };
+      default:
+        return { color: "#6b7280", icon: "📦" };
+    }
+  };
+
+  const groupedExpense = Object.values(
+    filtered
+      .filter((item) => item.type === "expense")
+      .reduce((acc: any, item) => {
+        if (!acc[item.kategori]) {
+          acc[item.kategori] = { name: item.kategori, value: 0 };
+        }
+        acc[item.kategori].value += item.nominal;
+        return acc;
+      }, {})
+  );
+
+  const incomeVsExpense = [
+    { name: "Income", value: totalIncome },
+    { name: "Expense", value: totalExpense },
+  ];
+
+  return (
+    <main className="min-h-screen bg-gray-100 p-4 text-gray-900">
+      <div className="max-w-md mx-auto space-y-4">
+
+        <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl p-5 shadow-xl">
+          <div className="flex justify-between items-center mb-2">
+            <p className="text-sm opacity-90">
+              {mode === "monthly" ? "Saldo Bulan Ini" : "Total Saldo"}
+            </p>
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value)}
+              className="text-xs bg-white text-gray-900 rounded px-2 py-1"
+            >
+              <option value="monthly">Bulanan</option>
+              <option value="all">Semua</option>
+            </select>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Rp {balance.toLocaleString()}
+          </h1>
+          <div className="flex justify-between mt-3 text-sm">
+            <span className="text-green-200">
+              + {totalIncome.toLocaleString()}
+            </span>
+            <span className="text-red-200">
+              - {totalExpense.toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-lg p-4 border border-gray-200">
+          <h2 className="font-semibold mb-2">Tambah Transaksi</h2>
+
+          <select
+            value={type}
+            onChange={(e) => {
+              setType(e.target.value);
+              setKategori("");
+            }}
+            className="w-full border border-gray-300 rounded-lg p-2 mb-2 bg-white text-gray-900"
+          >
+            <option value="expense">Pengeluaran</option>
+            <option value="income">Pemasukan</option>
+          </select>
+
+          <input
+            type="number"
+            placeholder="Rp 0"
+            value={nominal}
+            onChange={(e) => setNominal(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg p-2 mb-2 bg-white text-gray-900 placeholder-gray-500"
+          />
+
+          <select
+            value={kategori}
+            onChange={(e) => setKategori(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg p-2 mb-2 bg-white text-gray-900"
+          >
+            <option value="">Pilih Kategori</option>
+
+            {type === "expense" ? (
+              <>
+                <option value="makanan">Makanan</option>
+                <option value="transport">Transport</option>
+                <option value="belanja">Belanja</option>
+                <option value="tagihan">Tagihan</option>
+                <option value="hiburan">Hiburan</option>
+                <option value="lainnya">Lainnya</option>
+              </>
+            ) : (
+              <>
+                <option value="gaji">Gaji</option>
+                <option value="bonus">Bonus</option>
+                <option value="freelance">Freelance</option>
+                <option value="bisnis">Bisnis</option>
+                <option value="budget">Budget</option>
+                <option value="lainnya">Lainnya</option>
+              </>
+            )}
+          </select>
+
+          <input
+            type="text"
+            placeholder="Catatan"
+            value={catatan}
+            onChange={(e) => setCatatan(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg p-2 mb-3 bg-white text-gray-900 placeholder-gray-500"
+          />
+
+          <button
+            onClick={handleAdd}
+            disabled={loading}
+            className={`w-full py-2 rounded-lg text-white ${
+              loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {loading ? "Menyimpan..." : "Tambah"}
+          </button>
+        </div>
+
+        {mode === "monthly" && (
+          <div className="bg-white rounded-2xl shadow-lg p-4 border border-gray-200">
+            <select
+              value={month}
+              onChange={(e) => setMonth(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-2 mb-4"
+            >
+              <option value="01">Januari</option>
+              <option value="02">Februari</option>
+              <option value="03">Maret</option>
+              <option value="04">April</option>
+              <option value="05">Mei</option>
+              <option value="06">Juni</option>
+              <option value="07">Juli</option>
+              <option value="08">Agustus</option>
+              <option value="09">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">Desember</option>
+            </select>
+
+            <div className="h-52 mb-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={incomeVsExpense}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#3b82f6" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-        </main>
-    );
+
+            <div className="h-60">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={groupedExpense} dataKey="value" nameKey="name" outerRadius={80}>
+                    {groupedExpense.map((entry: any, index) => {
+                      const style = getCategoryStyle(entry.name);
+                      return <Cell key={index} fill={style.color} />;
+                    })}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white rounded-2xl shadow-lg p-4 border border-gray-200">
+          <div className="space-y-2">
+            {filtered.map((item) => {
+              const style = getCategoryStyle(item.kategori);
+              return (
+                <div key={item.id} className="flex justify-between bg-gray-100 p-3 rounded-lg">
+                  <div>
+                    <p className="font-semibold">
+                      {style.icon} {item.kategori}
+                    </p>
+                    <p className="text-xs text-gray-600">{item.catatan}</p>
+                  </div>
+                  <p className={`font-bold ${item.type === "income" ? "text-green-600" : "text-red-600"}`}>
+                    Rp {item.nominal.toLocaleString()}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+      </div>
+    </main>
+  );
 }
