@@ -232,10 +232,15 @@ export default function Dashboard() {
         }
     };
 
-    const groupedExpense = Object.values(
+    type ExpenseGroup = {
+        name: string;
+        value: number;
+    };
+
+    const groupedExpense: ExpenseGroup[] = Object.values(
         filtered
             .filter((item) => item.type === "expense")
-            .reduce((acc: any, item) => {
+            .reduce((acc: Record<string, ExpenseGroup>, item) => {
                 if (!acc[item.kategori]) {
                     acc[item.kategori] = { name: item.kategori, value: 0 };
                 }
@@ -244,7 +249,8 @@ export default function Dashboard() {
             }, {})
     );
 
-    const topExpense = groupedExpense.sort((a: any, b: any) => b.value - a.value)[0];
+    const topExpense: ExpenseGroup | undefined =
+        groupedExpense.sort((a, b) => b.value - a.value)[0];
 
     const incomeVsExpense = [
         { name: "Income", value: totalIncome },
@@ -287,7 +293,7 @@ export default function Dashboard() {
 
                 <div className="bg-white p-4 rounded-2xl shadow-sm border">
                     <p className="text-sm text-gray-500 mb-1">Pengeluaran Terbesar</p>
-                    {topExpense ? (
+                    {topExpense?.name ? (
                         <p className="font-semibold text-lg">
                             {topExpense.name} - Rp {topExpense.value.toLocaleString()}
                         </p>
