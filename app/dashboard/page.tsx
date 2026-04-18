@@ -205,11 +205,11 @@ export default function Dashboard() {
                     <div className="flex justify-between items-center mb-2">
                         <p className="text-sm opacity-90">{mode === "monthly" ? "Saldo Bulan Ini" : "Total Saldo"}</p>
                         <div className="flex gap-2">
-                            <select value={mode} onChange={(e) => setMode(e.target.value)} className="text-xs text-gray-800 rounded px-2 py-1">
+                            <select value={mode} onChange={(e) => setMode(e.target.value)} className="text-xs bg-white text-gray-800 rounded px-2 py-1">
                                 <option value="monthly">Bulanan</option>
                                 <option value="all">Semua</option>
                             </select>
-                            <button onClick={logout} className="text-xs">Logout</button>
+                            <button onClick={logout} className="bg-white text-gray-800 rounded px-2 py-1 text-xs">Logout</button>
                         </div>
                     </div>
 
