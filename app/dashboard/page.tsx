@@ -239,7 +239,14 @@ export default function Dashboard() {
                 )}
 
                 <div className="bg-white p-4 rounded-2xl shadow-sm border">
-                    <select value={type} onChange={(e) => setType(e.target.value)} className="w-full border p-2 mb-2 rounded">
+                    <select
+                        value={type}
+                        onChange={(e) => {
+                            setType(e.target.value);
+                            setKategori("");
+                        }}
+                        className="w-full border border-gray-300 p-2 mb-2 rounded bg-white text-gray-900"
+                    >
                         <option value="expense">Pengeluaran</option>
                         <option value="income">Pemasukan</option>
                     </select>
@@ -249,20 +256,35 @@ export default function Dashboard() {
                         placeholder="Rp 0"
                         value={nominal}
                         onChange={(e) => setNominal(formatNumber(e.target.value))}
-                        className="w-full border p-2 mb-2 rounded"
+                        className="w-full border border-gray-300 p-2 mb-2 rounded bg-white text-gray-900 placeholder-gray-500"
                     />
 
-                    <select value={kategori} onChange={(e) => setKategori(e.target.value)} className="w-full border p-2 mb-2 rounded">
+                    <select
+                        value={kategori}
+                        onChange={(e) => setKategori(e.target.value)}
+                        className="w-full border border-gray-300 p-2 mb-2 rounded bg-white text-gray-900"
+                    >
                         <option value="">Kategori</option>
-                        <option value="makanan">Makanan</option>
-                        <option value="transport">Transport</option>
-                        <option value="belanja">Belanja</option>
-                        <option value="tagihan">Tagihan</option>
-                        <option value="hiburan">Hiburan</option>
-                        <option value="gaji">Gaji</option>
-                        <option value="dana">Dana</option>
-                        <option value="bonus">Bonus</option>
-                        <option value="freelance">Freelance</option>
+
+                        {type === "expense" ? (
+                            <>
+                                <option value="makanan">Makanan</option>
+                                <option value="transport">Transport</option>
+                                <option value="belanja">Belanja</option>
+                                <option value="tagihan">Tagihan</option>
+                                <option value="hiburan">Hiburan</option>
+                                <option value="lainnya">Lainnya</option>
+                            </>
+                        ) : (
+                            <>
+                                <option value="gaji">Gaji</option>
+                                <option value="bonus">Bonus</option>
+                                <option value="freelance">Freelance</option>
+                                <option value="dana">Dana</option>
+                                <option value="bisnis">Bisnis</option>
+                                <option value="lainnya">Lainnya</option>
+                            </>
+                        )}
                     </select>
 
                     <input
@@ -270,10 +292,13 @@ export default function Dashboard() {
                         placeholder="Catatan"
                         value={catatan}
                         onChange={(e) => setCatatan(e.target.value)}
-                        className="w-full border p-2 mb-2 rounded"
+                        className="w-full border border-gray-300 p-2 mb-2 rounded bg-white text-gray-900 placeholder-gray-500"
                     />
 
-                    <button onClick={handleAdd} className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg">
+                    <button
+                        onClick={handleAdd}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg font-semibold transition"
+                    >
                         {loading ? "Menyimpan..." : "Tambah"}
                     </button>
                 </div>
