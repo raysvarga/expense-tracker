@@ -34,11 +34,11 @@ export default function LoginPage() {
             <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-6">
 
                 <h1 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-                    Expense Tracker by Rays
+                    Financial Tracker by Rays
                 </h1>
 
                 <p className="text-gray-600 text-sm mb-6 text-center">
-                    Masuk untuk mulai mencatat pengeluaran
+                    Masuk untuk mulai mencatat keuangan
                 </p>
 
                 <input
