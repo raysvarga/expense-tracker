@@ -71,11 +71,24 @@ export default function Dashboard() {
                 catatan: toTitleCase(item.catatan || ""),
                 type: item.type || "expense",
                 month: String(d.getMonth() + 1).padStart(2, "0"),
+                created: d.getTime(),
+                date: d,
             };
         });
 
-        setData(formatted);
+        setData(formatted.sort((a: any, b: any) => b.created - a.created));
     };
+
+    function formatDateTime(date: Date) {
+        const options: Intl.DateTimeFormatOptions = {
+            day: "2-digit",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+        };
+
+        return date.toLocaleString("id-ID", options);
+    }
 
     const handleAdd = async () => {
         if (!nominal || !kategori) return alert("Isi nominal & kategori");
@@ -127,8 +140,8 @@ export default function Dashboard() {
                 action: "update",
                 id: editItem.id,
                 nominal: parseNumber(editItem.nominal),
-                kategori: editItem.kategori,
-                catatan: editItem.catatan,
+                kategori: toTitleCase(editItem.kategori),
+                catatan: toTitleCase(editItem.catatan || ""),
                 type: editItem.type,
             }),
         });
@@ -145,6 +158,16 @@ export default function Dashboard() {
     const monthlyData = data.filter((item) => item.month === month);
     const filtered = mode === "monthly" ? monthlyData : data;
 
+    const totalIncomeAll = data
+        .filter((item) => item.type === "income")
+        .reduce((sum, item) => sum + item.nominal, 0);
+
+    const totalExpenseAll = data
+        .filter((item) => item.type === "expense")
+        .reduce((sum, item) => sum + item.nominal, 0);
+
+    const balance = totalIncomeAll - totalExpenseAll;
+
     const totalIncome = filtered
         .filter((item) => item.type === "income")
         .reduce((sum, item) => sum + item.nominal, 0);
@@ -153,13 +176,11 @@ export default function Dashboard() {
         .filter((item) => item.type === "expense")
         .reduce((sum, item) => sum + item.nominal, 0);
 
-    const balance = totalIncome - totalExpense;
-
     const isOverspending = totalExpense > totalIncome;
 
-    const savingRate = totalIncome > 0 
-    ? Math.round((balance / totalIncome) * 100) 
-    : 0;
+    const savingRate = totalIncomeAll > 0 
+        ? Math.round((balance / totalIncomeAll) * 100) 
+        : 0;
 
     let insightMessage = "";
 
@@ -263,14 +284,10 @@ export default function Dashboard() {
 
                 <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl p-5 shadow-lg">
                     <div className="flex justify-between items-center mb-2">
-                        <p className="text-sm opacity-90">{mode === "monthly" ? "Saldo Bulan Ini" : "Total Saldo"}</p>
-                        <div className="flex gap-2">
-                            <select value={mode} onChange={(e) => setMode(e.target.value)} className="text-xs bg-white text-gray-800 rounded px-2 py-1">
-                                <option value="monthly">Bulanan</option>
-                                <option value="all">Semua</option>
-                            </select>
-                            <button onClick={logout} className="bg-white text-gray-800 rounded px-2 py-1 text-xs">Logout</button>
-                        </div>
+                        <p className="text-sm opacity-90">
+                            Total Saldo
+                        </p>
+                        <button onClick={logout} className="bg-white text-gray-800 rounded px-2 py-1 text-xs">Logout</button>
                     </div>
 
                     <h1 className="text-3xl font-bold">Rp {balance.toLocaleString()}</h1>
@@ -282,8 +299,8 @@ export default function Dashboard() {
                     )}
 
                     <div className="flex justify-between mt-3 text-sm">
-                        <span className="text-green-200">+ Rp {totalIncome.toLocaleString()}</span>
-                        <span className="text-red-200">- Rp {totalExpense.toLocaleString()}</span>
+                        <span className="text-green-200">+ Rp {totalIncomeAll.toLocaleString()}</span>
+                            <span className="text-red-200">- Rp {totalExpenseAll.toLocaleString()}</span>
                     </div>
 
                     <p className="text-xs mt-2 opacity-90">
@@ -382,22 +399,37 @@ export default function Dashboard() {
                     </button>
                 </div>
 
-                {mode === "monthly" && (
-                    <select value={month} onChange={(e) => setMonth(e.target.value)} className="w-full border p-2 rounded-lg bg-white">
-                        <option value="01">Januari</option>
-                        <option value="02">Februari</option>
-                        <option value="03">Maret</option>
-                        <option value="04">April</option>
-                        <option value="05">Mei</option>
-                        <option value="06">Juni</option>
-                        <option value="07">Juli</option>
-                        <option value="08">Agustus</option>
-                        <option value="09">September</option>
-                        <option value="10">Oktober</option>
-                        <option value="11">November</option>
-                        <option value="12">Desember</option>
+                <div className="flex gap-2">
+                    <select
+                        value={mode}
+                        onChange={(e) => setMode(e.target.value)}
+                        className="w-1/2 border p-2 rounded-lg bg-white"
+                    >
+                        <option value="monthly">Bulanan</option>
+                        <option value="all">Semua</option>
                     </select>
-                )}
+
+                    {mode === "monthly" && (
+                        <select
+                            value={month}
+                            onChange={(e) => setMonth(e.target.value)}
+                            className="w-1/2 border p-2 rounded-lg bg-white"
+                        >
+                            <option value="01">Januari</option>
+                            <option value="02">Februari</option>
+                            <option value="03">Maret</option>
+                            <option value="04">April</option>
+                            <option value="05">Mei</option>
+                            <option value="06">Juni</option>
+                            <option value="07">Juli</option>
+                            <option value="08">Agustus</option>
+                            <option value="09">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
+                    )}
+                </div>
 
                 <div className="bg-white p-4 rounded-2xl shadow-sm border">
                     <div className="h-40">
@@ -427,7 +459,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl shadow-sm border space-y-2">
+                <div className="bg-white p-4 rounded-2xl shadow-sm border space-y-2 max-h-80 overflow-y-auto">
                     {filtered.map((item) => {
                         const style = getCategoryStyle(item.kategori);
                         return (
@@ -435,13 +467,14 @@ export default function Dashboard() {
                                 <div>
                                     <p className="font-medium">{style.icon} {item.kategori}</p>
                                     <p className="text-xs text-gray-500">{item.catatan}</p>
+                                    <p className="text-xs text-gray-400">{formatDateTime(item.date)}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className={`font-semibold ${item.type === "income" ? "text-green-600" : "text-red-600"}`}>
                                         Rp {item.nominal.toLocaleString()}
                                     </p>
                                     <div className="text-xs text-gray-400 space-x-2">
-                                        <button onClick={() => setEditItem(item)} className="hover:text-blue-600">Edit</button>
+                                        <button onClick={() => setEditItem({ ...item, nominal: formatNumber(item.nominal.toString()) })} className="hover:text-blue-600">Edit</button>
                                         <button onClick={() => handleDelete(item.id)} className="hover:text-red-600">Hapus</button>
                                     </div>
                                 </div>
