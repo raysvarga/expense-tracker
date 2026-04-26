@@ -184,44 +184,44 @@ export default function Dashboard() {
 
     let insightMessage = "";
 
-    if (isOverspending) {
-        insightMessage = "Pengeluaran kamu lebih besar dari pemasukan";
-    } else if (savingRate > 30) {
-        insightMessage = "Bagus! Kamu rajin menabung";
-    } else if (savingRate > 10) {
-        insightMessage = "Lumayan, tapi masih bisa ditingkatkan";
+    if (totalExpense > totalIncome) {
+        insightMessage = "Budget kamu jebol, pengeluaran lebih besar dari pemasukan";
+    } else if (totalExpense > totalIncome * 0.8) {
+        insightMessage = "Hampir habis, sisa budget kamu sedikit";
+    } else if (totalExpense > totalIncome * 0.5) {
+        insightMessage = "Pengeluaran masih aman, tapi tetap kontrol ya";
     } else {
-        insightMessage = "Coba kurangi pengeluaran ya";
+        insightMessage = "Budget kamu masih longgar";
     }
 
     const getInsightStyle = () => {
-        if (isOverspending) {
+        if (totalExpense > totalIncome) {
             return {
                 bg: "bg-red-50",
                 text: "text-red-700",
                 border: "border-red-200",
-                icon: "⚠️",
+                icon: "🚨",
             };
-        } else if (savingRate > 30) {
-            return {
-                bg: "bg-green-50",
-                text: "text-green-700",
-                border: "border-green-200",
-                icon: "💰",
-            };
-        } else if (savingRate > 10) {
+        } else if (totalExpense > totalIncome * 0.8) {
             return {
                 bg: "bg-yellow-50",
                 text: "text-yellow-700",
                 border: "border-yellow-200",
-                icon: "👍",
+                icon: "⚠️",
+            };
+        } else if (totalExpense > totalIncome * 0.5) {
+            return {
+                bg: "bg-blue-50",
+                text: "text-blue-700",
+                border: "border-blue-200",
+                icon: "📊",
             };
         } else {
             return {
-                bg: "bg-gray-50",
-                text: "text-gray-700",
-                border: "border-gray-200",
-                icon: "🚨",
+                bg: "bg-green-50",
+                text: "text-green-700",
+                border: "border-green-200",
+                icon: "✅",
             };
         }
     };
