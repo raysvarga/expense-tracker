@@ -176,7 +176,7 @@ export default function Dashboard() {
         .filter((item) => item.type === "expense")
         .reduce((sum, item) => sum + item.nominal, 0);
 
-    const isOverspending = totalExpense > totalIncome;
+    const isOverspending = totalExpenseAll > totalIncomeAll;
 
     const savingRate = totalIncomeAll > 0 
         ? Math.round((balance / totalIncomeAll) * 100) 
@@ -184,32 +184,32 @@ export default function Dashboard() {
 
     let insightMessage = "";
 
-    if (totalExpense > totalIncome) {
+    if (totalExpenseAll > totalIncomeAll) {
         insightMessage = "Budget kamu jebol, pengeluaran lebih besar dari pemasukan";
-    } else if (totalExpense > totalIncome * 0.8) {
+    } else if (totalExpenseAll > totalIncomeAll * 0.8) {
         insightMessage = "Hampir habis, sisa budget kamu sedikit";
-    } else if (totalExpense > totalIncome * 0.5) {
+    } else if (totalExpenseAll > totalIncomeAll * 0.5) {
         insightMessage = "Pengeluaran masih aman, tapi tetap kontrol ya";
     } else {
         insightMessage = "Budget kamu masih longgar";
     }
 
     const getInsightStyle = () => {
-        if (totalExpense > totalIncome) {
+        if (totalExpenseAll > totalIncomeAll) {
             return {
                 bg: "bg-red-50",
                 text: "text-red-700",
                 border: "border-red-200",
                 icon: "🚨",
             };
-        } else if (totalExpense > totalIncome * 0.8) {
+        } else if (totalExpenseAll > totalIncomeAll * 0.8) {
             return {
                 bg: "bg-yellow-50",
                 text: "text-yellow-700",
                 border: "border-yellow-200",
                 icon: "⚠️",
             };
-        } else if (totalExpense > totalIncome * 0.5) {
+        } else if (totalExpenseAll > totalIncomeAll * 0.5) {
             return {
                 bg: "bg-blue-50",
                 text: "text-blue-700",
